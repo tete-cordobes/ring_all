@@ -46,6 +46,16 @@ class TerminalManager {
     constructor(mainWindow) {
         this.mainWindow = mainWindow;
     }
+    // Guard against sending to destroyed window during shutdown
+    _send(channel, data) {
+        try {
+            if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+                this._send(channel, data);
+            }
+        } catch (e) {
+            // Window already destroyed during shutdown — safe to ignore
+        }
+    }
     setOutputCallback(callback) {
         this.outputCallback = callback;
     }
@@ -104,14 +114,14 @@ class TerminalManager {
             if (terminal.outputBuffer.length > 1000) {
                 terminal.outputBuffer.shift();
             }
-            this.mainWindow.webContents.send('terminal:output', { id, data });
+            this._send('terminal:output', { id, data });
             // Forward to output callback (narrator/synthesizer)
             if (this.outputCallback) {
                 this.outputCallback(id, data);
             }
         });
         ptyProcess.onExit(({ exitCode }) => {
-            this.mainWindow.webContents.send('terminal:exit', { id, exitCode });
+            this._send('terminal:exit', { id, exitCode });
             this.terminals.delete(id);
             this.terminalOrder = this.terminalOrder.filter(tid => tid !== id);
         });
@@ -121,7 +131,7 @@ class TerminalManager {
         if (this.terminals.size === 1) {
             this.focusTerminal(id);
         }
-        this.mainWindow.webContents.send('terminal:created', {
+        this._send('terminal:created', {
             id,
             name: config.name,
             isActive: terminal.isActive
@@ -153,7 +163,7 @@ class TerminalManager {
         if (terminal) {
             terminal.isActive = true;
             this.activeTerminalId = id;
-            this.mainWindow.webContents.send('agent:focused', {
+            this._send('agent:focused', {
                 id,
                 name: terminal.name,
             });
@@ -176,7 +186,7 @@ class TerminalManager {
         if (terminal) {
             // Write command to terminal stdin
             terminal.process.write(command);
-            this.mainWindow.webContents.send('command:injected', {
+            this._send('command:injected', {
                 id,
                 command,
                 timestamp: Date.now()
