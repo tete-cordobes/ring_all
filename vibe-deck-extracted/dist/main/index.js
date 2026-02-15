@@ -232,19 +232,13 @@ function createWindow() {
             terminalManager.injectCommand(current.id, '\r');
         }
     });
-    // Load the app — try dev server first, fallback to built files
+    // Load the app — always load built files (dev server requires vite running separately)
     const rendererPath = path.join(__dirname, '../renderer/index.html');
-    if (isDev) {
-        mainWindow.loadURL('http://localhost:5173').catch(() => {
-            log('Dev server not running, loading built files');
-            mainWindow.loadFile(rendererPath);
-        });
-    }
-    else {
-        mainWindow.loadFile(rendererPath);
-    }
-    // Open DevTools in development
-    if (isDev && mainWindow) {
+    mainWindow.loadFile(rendererPath).catch(e => {
+        log(`Failed to load renderer: ${e.message}`);
+    });
+    // Open DevTools only if VIBE_DEVTOOLS env var is set
+    if (process.env.VIBE_DEVTOOLS && mainWindow) {
         mainWindow.webContents.openDevTools({ mode: 'detach' });
     }
     // Setup global shortcuts for mouse buttons (fallback)

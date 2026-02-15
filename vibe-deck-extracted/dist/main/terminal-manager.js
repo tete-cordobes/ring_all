@@ -86,7 +86,7 @@ class TerminalManager {
         const shell = config.shell || this.getDefaultShell();
         const cwd = config.cwd || os.homedir();
         console.log(`Creating terminal with shell: ${shell}, cwd: ${cwd}`);
-        const ptyProcess = pty.spawn(shell, ['--login'], {
+        const ptyProcess = pty.spawn(shell, [], {
             name: 'xterm-256color',
             cols: 120,
             rows: 30,

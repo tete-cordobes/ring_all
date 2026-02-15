@@ -31,6 +31,7 @@ class AuthManager {
             return true;
         });
         electron_1.ipcMain.handle('auth:check', async () => {
+            console.log('[AuthManager] auth:check called — returning authenticated');
             return { authenticated: true, license: LOCAL_LICENSE, email: LOCAL_USER.email };
         });
     }
