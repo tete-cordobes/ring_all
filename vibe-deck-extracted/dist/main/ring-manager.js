@@ -138,8 +138,14 @@ class RingManager {
         }
         this.isConnected = false;
         this.currentDevicePath = null;
-        this.mainWindow.webContents.send('ring:disconnected');
-        this.mainWindow.webContents.send('ring:status', { connected: false });
+        try {
+            if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+                this.mainWindow.webContents.send('ring:disconnected');
+                this.mainWindow.webContents.send('ring:status', { connected: false });
+            }
+        } catch (e) {
+            // Window already destroyed during shutdown — safe to ignore
+        }
         console.log('[Ring] Desconectado');
     }
     /**
@@ -188,8 +194,14 @@ class RingManager {
         this.stopReading();
         this.isConnected = false;
         this.device = null;
-        this.mainWindow.webContents.send('ring:disconnected');
-        this.mainWindow.webContents.send('ring:status', { connected: false });
+        try {
+            if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+                this.mainWindow.webContents.send('ring:disconnected');
+                this.mainWindow.webContents.send('ring:status', { connected: false });
+            }
+        } catch (e) {
+            // Window already destroyed during shutdown — safe to ignore
+        }
         console.log('[Ring] Desconexión inesperada');
     }
     /**
