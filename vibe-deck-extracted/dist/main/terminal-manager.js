@@ -86,7 +86,7 @@ class TerminalManager {
         const shell = config.shell || this.getDefaultShell();
         const cwd = config.cwd || os.homedir();
         console.log(`Creating terminal with shell: ${shell}, cwd: ${cwd}`);
-        const ptyProcess = pty.spawn(shell, [], {
+        const ptyProcess = pty.spawn(shell, ['--login'], {
             name: 'xterm-256color',
             cols: 120,
             rows: 30,
@@ -96,7 +96,9 @@ class TerminalManager {
                 ...config.env,
                 TERM: 'xterm-256color',
                 COLORTERM: 'truecolor',
+                SHELL: shell,
                 HOME: os.homedir(),
+                LANG: process.env.LANG || 'en_US.UTF-8',
                 PATH: '/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:' + (process.env.PATH || ''),
             },
         });
