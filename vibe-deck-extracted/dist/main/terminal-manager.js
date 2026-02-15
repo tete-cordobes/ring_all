@@ -50,7 +50,7 @@ class TerminalManager {
     _send(channel, data) {
         try {
             if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-                this._send(channel, data);
+                this.mainWindow.webContents.send(channel, data);
             }
         } catch (e) {
             // Window already destroyed during shutdown — safe to ignore
@@ -86,7 +86,7 @@ class TerminalManager {
         const shell = config.shell || this.getDefaultShell();
         const cwd = config.cwd || os.homedir();
         console.log(`Creating terminal with shell: ${shell}, cwd: ${cwd}`);
-        const ptyProcess = pty.spawn(shell, [], {
+        const ptyProcess = pty.spawn(shell, ['-l'], {
             name: 'xterm-256color',
             cols: 120,
             rows: 30,
@@ -105,6 +105,7 @@ class TerminalManager {
         const terminal = {
             id,
             name: config.name,
+            cwd,
             process: ptyProcess,
             isActive: false,
             outputBuffer: [],
@@ -136,6 +137,7 @@ class TerminalManager {
         this._send('terminal:created', {
             id,
             name: config.name,
+            cwd,
             isActive: terminal.isActive
         });
         return id;
@@ -168,6 +170,7 @@ class TerminalManager {
             this._send('agent:focused', {
                 id,
                 name: terminal.name,
+                cwd: terminal.cwd,
             });
         }
     }
@@ -222,6 +225,7 @@ class TerminalManager {
         return {
             id: terminal.id,
             name: terminal.name,
+            cwd: terminal.cwd,
         };
     }
     getRecentOutput(id, lines = 50) {
@@ -234,6 +238,7 @@ class TerminalManager {
         return Array.from(this.terminals.values()).map(t => ({
             id: t.id,
             name: t.name,
+            cwd: t.cwd,
             isActive: t.isActive,
         }));
     }

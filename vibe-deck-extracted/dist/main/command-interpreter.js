@@ -8,7 +8,7 @@ const child_process_1 = require("child_process");
 const openai_1 = __importDefault(require("openai"));
 // Regex-first classification patterns (covers 90%+ of inputs)
 const DIRECT_PATTERNS = /^(ls|cd|pwd|cat|echo|mkdir|rm|cp|mv|git|npm|npx|yarn|pnpm|bun|docker|kubectl|make|cargo|go|python|pip|node|deno|curl|wget|ssh|scp|brew|apt|yum|pacman|eza|bat|rg|fd|sd|tmux|zellij|vim|nvim|nano|htop|top|ps|kill|grep|find|sed|awk|tar|zip|unzip|which|env|export|source|chmod|chown|clear|exit|history|man|touch|ln|df|du|tail|head|sort|wc|diff|ping|traceroute|dig|nslookup|ifconfig|netstat|lsof|open|code|subl)\b/i;
-const META_PATTERNS = /\b(enable|disable|activate|deactivate|turn on|turn off|switch|driving mode|narrator|terminal|agent)\b/i;
+const META_PATTERNS = /\b(enable|disable|activate|deactivate|turn on|turn off|switch|driving mode|narrator|terminal|agent|open terminal|new terminal|new agent|work in|work on|create terminal|create agent)\b/i;
 const QUERY_PATTERNS = /\b(what happened|any errors|status|what's going on|show me|tell me|how's it going|qué pasó|algún error|estado|what did|what was|last output|recent output|show output|read terminal|what errors|show errors|summarize|summary)\b/i;
 class CommandInterpreter {
     terminalManager;
@@ -334,6 +334,35 @@ Categories:
                 this.onNarrateCallback('Switched to previous terminal');
             }
             return { action: 'terminal_previous' };
+        }
+        // Voice terminal creation: "open terminal in Desktop", "work in projects/myapp"
+        const openMatch = normalized.match(/(?:open|new|create)\s+(?:terminal|agent)\s+(?:in|at|on)\s+(.+)/);
+        const workMatch = !openMatch && normalized.match(/(?:work|start)\s+(?:in|on|at)\s+(.+)/);
+        const dirMatch = openMatch || workMatch;
+        if (dirMatch) {
+            const rawPath = dirMatch[1].trim();
+            const path = require('path'), os = require('os'), fs = require('fs');
+            let resolved = path.isAbsolute(rawPath) ? rawPath
+                : rawPath.startsWith('~') ? rawPath.replace('~', os.homedir())
+                : path.join(os.homedir(), rawPath);
+            try {
+                if (fs.statSync(resolved).isDirectory()) {
+                    const terminals = this.terminalManager.getAllTerminals();
+                    const name = `Agent ${terminals.length + 1}`;
+                    const id = this.terminalManager.createTerminal({ name, cwd: resolved });
+                    if (this.onNarrateCallback) {
+                        this.onNarrateCallback(`Opened terminal in ${resolved.replace(os.homedir(), '~')}`);
+                    }
+                    if (this.store) {
+                        const recent = this.store.get('recentDirectories') || [];
+                        this.store.set('recentDirectories', [resolved, ...recent.filter(p => p !== resolved)].slice(0, 10));
+                        this.store.set('lastDirectory', resolved);
+                    }
+                    return { action: 'terminal_created', terminalId: id, cwd: resolved, name };
+                }
+            } catch (e) { /* path doesn't exist */ }
+            if (this.onNarrateCallback) this.onNarrateCallback(`Directory not found: ${rawPath}`);
+            return { action: 'directory_not_found', path: rawPath };
         }
         return { action: 'meta_unhandled', text };
     }

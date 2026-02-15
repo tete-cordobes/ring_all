@@ -226,6 +226,13 @@ electron_1.contextBridge.exposeInMainWorld('vibering', {
             return () => electron_1.ipcRenderer.removeListener('voice:meta-command', handler);
         },
     },
+    // Directory operations
+    directory: {
+        showQuickPick: () => electron_1.ipcRenderer.invoke('directory:show-quick-pick'),
+        getRecent: () => electron_1.ipcRenderer.invoke('directory:get-recent'),
+        getLast: () => electron_1.ipcRenderer.invoke('directory:get-last'),
+        resolve: (input) => electron_1.ipcRenderer.invoke('directory:resolve', input),
+    },
     // Settings
     settings: {
         getApiKey: () => electron_1.ipcRenderer.invoke('settings:get-api-key'),

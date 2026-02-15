@@ -440,6 +440,66 @@ electron_1.ipcMain.handle('telegram:status', async () => {
 electron_1.ipcMain.handle('telegram:set-token', async (_, token) => {
     store.set('telegramBotToken', token);
 });
+// Directory handlers
+electron_1.ipcMain.handle('directory:show-quick-pick', async () => {
+    return new Promise((resolve) => {
+        const recent = store.get('recentDirectories') || [];
+        const os = require('os');
+        let resolved = false;
+        const safeResolve = (val) => { if (!resolved) { resolved = true; resolve(val); } };
+        const menuItems = [];
+        for (const dir of recent.slice(0, 8)) {
+            const shortPath = dir.replace(os.homedir(), '~');
+            menuItems.push({
+                label: shortPath,
+                click: () => { store.set('lastDirectory', dir); safeResolve(dir); }
+            });
+        }
+        if (recent.length > 0) menuItems.push({ type: 'separator' });
+        menuItems.push({
+            label: '~  Home',
+            click: () => safeResolve(os.homedir())
+        });
+        menuItems.push({ type: 'separator' });
+        menuItems.push({
+            label: 'Browse...',
+            click: async () => {
+                const result = await electron_1.dialog.showOpenDialog(mainWindow, {
+                    properties: ['openDirectory'],
+                    title: 'Select Working Directory',
+                    defaultPath: store.get('lastDirectory') || os.homedir(),
+                });
+                if (result.canceled || result.filePaths.length === 0) {
+                    safeResolve(null);
+                } else {
+                    const sel = result.filePaths[0];
+                    store.set('lastDirectory', sel);
+                    const updated = [sel, ...recent.filter(p => p !== sel)].slice(0, 10);
+                    store.set('recentDirectories', updated);
+                    safeResolve(sel);
+                }
+            }
+        });
+        const menu = electron_1.Menu.buildFromTemplate(menuItems);
+        menu.popup({ window: mainWindow, callback: () => { setTimeout(() => safeResolve(null), 200); } });
+    });
+});
+electron_1.ipcMain.handle('directory:get-recent', async () => {
+    return store.get('recentDirectories') || [];
+});
+electron_1.ipcMain.handle('directory:get-last', async () => {
+    return store.get('lastDirectory') || require('os').homedir();
+});
+electron_1.ipcMain.handle('directory:resolve', async (_, input) => {
+    const fs = require('fs'); const path = require('path'); const os = require('os');
+    let resolved = path.isAbsolute(input) ? input
+        : input.startsWith('~') ? input.replace('~', os.homedir())
+        : path.join(os.homedir(), input);
+    try {
+        if (fs.statSync(resolved).isDirectory()) return { valid: true, path: resolved };
+        return { valid: false, path: resolved, error: 'Not a directory' };
+    } catch (e) { return { valid: false, path: resolved, error: 'Path does not exist' }; }
+});
 // Command Interpreter handlers
 electron_1.ipcMain.handle('command:interpret', async (_, text) => {
     return commandInterpreter.interpret(text);
