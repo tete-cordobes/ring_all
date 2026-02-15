@@ -59,6 +59,26 @@ function log(msg) {
 }
 log('--- App Starting ---');
 log(`UserData: ${electron_1.app.getPath('userData')}`);
+// Fix node-pty spawn-helper permissions (lost during DMG extraction)
+try {
+    const spawnHelperPaths = [
+        path.join(__dirname, '../../node_modules/node-pty/build/Release/spawn-helper'),
+        path.join(__dirname, '../../node_modules/node-pty/prebuilds/darwin-arm64/spawn-helper'),
+        path.join(__dirname, '../../node_modules/node-pty/prebuilds/darwin-x64/spawn-helper'),
+    ];
+    for (const shPath of spawnHelperPaths) {
+        try {
+            if (fs.existsSync(shPath)) {
+                fs.chmodSync(shPath, 0o755);
+            }
+        } catch (e) {
+            log(`Warning: Could not fix spawn-helper permissions at ${shPath}: ${e.message}`);
+        }
+    }
+    log('spawn-helper permissions verified');
+} catch (e) {
+    log(`spawn-helper permission fix error: ${e.message}`);
+}
 const terminal_manager_1 = require("./terminal-manager");
 const voice_pipeline_1 = require("./voice-pipeline");
 const ssh_manager_1 = require("./ssh-manager");
@@ -212,12 +232,16 @@ function createWindow() {
             terminalManager.injectCommand(current.id, '\r');
         }
     });
-    // Load the app
+    // Load the app — try dev server first, fallback to built files
+    const rendererPath = path.join(__dirname, '../renderer/index.html');
     if (isDev) {
-        mainWindow.loadURL('http://localhost:5173');
+        mainWindow.loadURL('http://localhost:5173').catch(() => {
+            log('Dev server not running, loading built files');
+            mainWindow.loadFile(rendererPath);
+        });
     }
     else {
-        mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+        mainWindow.loadFile(rendererPath);
     }
     // Open DevTools in development
     if (isDev && mainWindow) {
@@ -255,7 +279,15 @@ function setupGlobalShortcuts(mainWindow) {
 }
 // IPC Handlers
 electron_1.ipcMain.handle('terminal:create', async (_, config) => {
-    return terminalManager.createTerminal(config);
+    log(`[IPC] terminal:create called with config: ${JSON.stringify(config)}`);
+    try {
+        const id = terminalManager.createTerminal(config);
+        log(`[IPC] terminal:create success, id: ${id}`);
+        return id;
+    } catch (e) {
+        log(`[IPC] terminal:create FAILED: ${e.message}`);
+        throw e;
+    }
 });
 electron_1.ipcMain.handle('terminal:write', async (_, { id, data }) => {
     terminalManager.writeToTerminal(id, data);
