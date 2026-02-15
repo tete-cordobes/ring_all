@@ -7,6 +7,7 @@ electron_1.contextBridge.exposeInMainWorld('vibering', {
     // Terminal operations
     terminal: {
         create: (config) => electron_1.ipcRenderer.invoke('terminal:create', config),
+        getHistory: (id) => electron_1.ipcRenderer.invoke('terminal:get-history', id),
         write: (id, data) => electron_1.ipcRenderer.invoke('terminal:write', { id, data }),
         resize: (id, cols, rows) => electron_1.ipcRenderer.invoke('terminal:resize', { id, cols, rows }),
         focus: (id) => electron_1.ipcRenderer.invoke('terminal:focus', id),

@@ -289,6 +289,9 @@ electron_1.ipcMain.handle('terminal:create', async (_, config) => {
         throw e;
     }
 });
+electron_1.ipcMain.handle('terminal:get-history', async (_, id) => {
+    return terminalManager.getRecentOutput(id);
+});
 electron_1.ipcMain.handle('terminal:write', async (_, { id, data }) => {
     terminalManager.writeToTerminal(id, data);
 });
