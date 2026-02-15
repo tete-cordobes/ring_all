@@ -1,0 +1,383 @@
+/* ============================
+   Vibe Deck Remote — Mobile PWA
+   ============================ */
+
+:root {
+  --bg: #0a0a0f;
+  --bg-surface: #141420;
+  --bg-elevated: #1e1e2e;
+  --primary: #7c3aed;
+  --primary-dim: #6d28d9;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-muted: #64748b;
+  --radius: 12px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+/* ============================
+   Screens
+   ============================ */
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  inset: 0;
+}
+
+.screen[hidden] {
+  display: none;
+}
+
+/* ============================
+   Login Screen
+   ============================ */
+
+.login-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2rem;
+  max-width: 400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.login-title {
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  background: linear-gradient(135deg, var(--primary), #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.login-subtitle {
+  text-align: center;
+  color: var(--text-dim);
+  margin-bottom: 2.5rem;
+  font-size: 0.95rem;
+}
+
+.input-group {
+  margin-bottom: 1.25rem;
+}
+
+.input-group label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--bg-elevated);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input-group input:focus {
+  border-color: var(--primary);
+}
+
+.input-group input::placeholder {
+  color: var(--text-muted);
+}
+
+.btn-connect {
+  width: 100%;
+  padding: 0.95rem;
+  margin-top: 0.5rem;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-connect:active {
+  background: var(--primary-dim);
+}
+
+.login-error {
+  text-align: center;
+  color: var(--error);
+  margin-top: 1rem;
+  font-size: 0.85rem;
+}
+
+/* ============================
+   Status Bar
+   ============================ */
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  padding-top: max(0.75rem, env(safe-area-inset-top));
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--bg-elevated);
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
+
+.status-dot.idle { background: var(--text-muted); }
+.status-dot.connected { background: var(--success); }
+.status-dot.recording { background: var(--error); animation: pulse 0.8s ease-in-out infinite; }
+.status-dot.processing { background: var(--warning); animation: pulse 1s ease-in-out infinite; }
+.status-dot.ready { background: var(--success); }
+
+.status-text {
+  flex: 1;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon:active {
+  color: var(--text);
+}
+
+/* ============================
+   Push-to-Talk Area
+   ============================ */
+
+.ptt-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.ptt-button {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  border: 3px solid var(--text-muted);
+  background: transparent;
+  color: var(--text-dim);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.ptt-button .ptt-icon {
+  width: 48px;
+  height: 48px;
+}
+
+.ptt-button .ptt-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* PTT States */
+.ptt-button.recording {
+  border-color: var(--error);
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--error);
+  transform: scale(1.1);
+  animation: pulse-ring 0.8s ease-in-out infinite;
+}
+
+.ptt-button.processing {
+  border-color: var(--warning);
+  color: var(--warning);
+  animation: spin-border 1.5s linear infinite;
+}
+
+.ptt-button.ready {
+  border-color: var(--success);
+  color: var(--success);
+  animation: flash-green 0.4s ease;
+}
+
+.last-action {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-align: center;
+  min-height: 1.2em;
+  max-width: 80%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ============================
+   Bottom Controls
+   ============================ */
+
+.bottom-controls {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  background: var(--bg-surface);
+  border-top: 1px solid var(--bg-elevated);
+}
+
+.btn-toggle {
+  background: none;
+  border: 1px solid var(--bg-elevated);
+  color: var(--text-muted);
+  border-radius: var(--radius);
+  padding: 0.6rem 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-toggle.active {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: rgba(124, 58, 237, 0.1);
+}
+
+.btn-toggle:active {
+  opacity: 0.7;
+}
+
+/* ============================
+   Driving Mode
+   ============================ */
+
+body.driving-mode .status-bar {
+  padding: 0.4rem 0.75rem;
+  padding-top: max(0.4rem, env(safe-area-inset-top));
+}
+
+body.driving-mode .status-text {
+  font-size: 0.7rem;
+}
+
+body.driving-mode .ptt-button {
+  width: 85vmin;
+  height: 85vmin;
+  max-width: 400px;
+  max-height: 400px;
+}
+
+body.driving-mode .ptt-button .ptt-icon {
+  width: 80px;
+  height: 80px;
+}
+
+body.driving-mode .ptt-button .ptt-label {
+  font-size: 1rem;
+}
+
+body.driving-mode .last-action {
+  font-size: 1.1rem;
+}
+
+body.driving-mode .bottom-controls {
+  display: none;
+}
+
+/* ============================
+   Animations
+   ============================ */
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes pulse-ring {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
+}
+
+@keyframes spin-border {
+  0% { border-color: var(--warning) transparent transparent transparent; }
+  25% { border-color: transparent var(--warning) transparent transparent; }
+  50% { border-color: transparent transparent var(--warning) transparent; }
+  75% { border-color: transparent transparent transparent var(--warning); }
+  100% { border-color: var(--warning) transparent transparent transparent; }
+}
+
+@keyframes flash-green {
+  0% { border-color: var(--success); background: rgba(34, 197, 94, 0.3); }
+  100% { border-color: var(--text-muted); background: transparent; }
+}
+
+/* ============================
+   Responsive
+   ============================ */
+
+@media (max-height: 500px) {
+  .ptt-button {
+    width: 120px;
+    height: 120px;
+  }
+
+  .ptt-button .ptt-icon {
+    width: 36px;
+    height: 36px;
+  }
+}

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#7c3aed">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="VibeDeck">
+  <title>Vibe Deck Remote</title>
+  <link rel="manifest" href="/mobile/manifest.json">
+  <link rel="stylesheet" href="/mobile/style.css">
+  <link rel="apple-touch-icon" href="/mobile/icon-192.png">
+</head>
+<body>
+  <!-- Login Screen -->
+  <div id="login-screen" class="screen">
+    <div class="login-container">
+      <h1 class="login-title">Vibe Deck</h1>
+      <p class="login-subtitle">Remote Control</p>
+      <form id="login-form" autocomplete="off">
+        <div class="input-group">
+          <label for="host-input">Host</label>
+          <input
+            type="text"
+            id="host-input"
+            placeholder="192.168.1.100:3456"
+            autocomplete="off"
+            spellcheck="false"
+          >
+        </div>
+        <div class="input-group">
+          <label for="token-input">Token</label>
+          <input
+            type="password"
+            id="token-input"
+            placeholder="Enter access token"
+            autocomplete="off"
+          >
+        </div>
+        <button type="submit" class="btn-connect">Connect</button>
+      </form>
+      <p id="login-error" class="login-error" hidden></p>
+    </div>
+  </div>
+
+  <!-- Main Remote Screen -->
+  <div id="main-screen" class="screen" hidden>
+    <!-- Status Bar -->
+    <div id="status-bar" class="status-bar">
+      <span id="status-dot" class="status-dot idle"></span>
+      <span id="status-text" class="status-text">Disconnected</span>
+      <button id="btn-disconnect" class="btn-icon" title="Disconnect">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Push-to-Talk Area -->
+    <div id="ptt-area" class="ptt-area">
+      <button id="ptt-button" class="ptt-button">
+        <svg class="ptt-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+          <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+        </svg>
+        <span class="ptt-label">Hold to Talk</span>
+      </button>
+      <p id="last-action" class="last-action"></p>
+    </div>
+
+    <!-- Bottom Controls -->
+    <div id="bottom-controls" class="bottom-controls">
+      <button id="btn-driving" class="btn-toggle" title="Driving Mode">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 6v6l4 2"/>
+        </svg>
+        <span>Driving</span>
+      </button>
+    </div>
+  </div>
+
+  <script src="/mobile/app.js"></script>
+</body>
+</html>
